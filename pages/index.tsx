@@ -1,5 +1,5 @@
-import Head from 'next/head'
-import { Example } from '../components/example'
+import Head from 'next/head';
+import { Example } from '../components/example';
 
 export default function Home() {
   return (
@@ -13,5 +13,5 @@ export default function Home() {
         <Example />
       </main>
     </>
-  )
+  );
 }
