@@ -21,6 +21,10 @@ export const Layout: React.FC<Props> = ({ children }) => {
 
       <div className="mt-3 container-fluid">
         {children}
+
+        <footer className="mt-5 mb-4">
+          <a href="https://twitter.com/tnantoka">@tnantoka</a>
+        </footer>
       </div>
     </>
   );

@@ -11,6 +11,7 @@ export const Home = () => {
   const [mainRb, setMainRb] = React.useState(defaultMainRb);
   const [rubocopYml, setRubocopYml] = React.useState(defaultRubocopYml);
   const [tab, setTab] = React.useState(0);
+  const [running, setRunning] = React.useState(false);
   const loaded = React.useRef(false);
 
   React.useEffect(() => {
@@ -32,10 +33,13 @@ export const Home = () => {
   const run = React.useCallback(() => {
     (async () => {
       try {
-        setOutput(await runVM(vm));
+        setRunning(true);
+        const json = await runVM(vm);
+        setOutput(json);
       } catch (e) {
         console.error(e);
       }
+      setRunning(false);
     })();
   }, [vm]);
 
@@ -45,14 +49,25 @@ export const Home = () => {
         <div className="spinner-grow" role="status" />
       ) : (
         <>
-          <ul className="nav nav-pills">
-            <li className="nav-item">
-              <button className={`nav-link rounded-0 ${tab === 0 && 'active'}`} onClick={() => setTab(0)}>main.rb</button>
-            </li>
-            <li className="nav-item">
-              <button className={`nav-link rounded-0 ${tab === 1 && 'active'}`} onClick={() => setTab(1)}>.rubocop.yml</button>
-            </li>
-          </ul>
+          <div className="row mt-3">
+            <div className="col">
+              <ul className="nav nav-pills">
+                <li className="nav-item">
+                  <button className={`nav-link rounded-0 ${tab === 0 && 'active'}`} onClick={() => setTab(0)}>main.rb</button>
+                </li>
+                <li className="nav-item">
+                  <button className={`nav-link rounded-0 ${tab === 1 && 'active'}`} onClick={() => setTab(1)}>.rubocop.yml</button>
+                </li>
+              </ul>
+            </div>
+            <div className="col">
+              {output !== null && (
+                <div className="d-flex align-items-center h-100">
+                  {output.summary.offense_count} offenses
+                </div>
+              )}
+            </div>
+          </div>
 
           <div className="row mt-3">
             <div className="col">
@@ -72,25 +87,33 @@ export const Home = () => {
                   className={`rubocop-yml ${tab !== 1 && 'd-none'}`}
                 />
               </p>
-              <p>
+              <p className="d-grid">
                 <button
                   onClick={run}
-                  disabled={vm === null}
+                  className="btn btn-secondary"
+                  disabled={running}
                 >
                   Run
                 </button>
               </p>
             </div>
             <div className="col">
-              {output !== null && (
-                <ul className="list-unstyled font-monospace bg-light p-3 small">
-                  {output.files.map(({ offenses }) => (
-                    offenses.map(({ message, location, severity }, i) => (
-                      <li key={i}>{location.line}:{location.column} {severity[0].toUpperCase()}: {message}</li>
-                    ))
-                  ))}
-                </ul>
-              )}
+              <ul className= "list-unstyled font-monospace bg-light p-3 small" >
+                {output === null ? (
+                  <li>
+                    No output
+                  </li>
+                ) : (
+                   output.files.map(({ offenses }) => (
+                     offenses.map(({ message, location, severity, correctable }, i) => (
+                       <li key={i}>
+                        {location.line }:{location.column} {severity[0].toUpperCase()}
+                        : {correctable && '[Correctable] '}{message}
+                      </li>
+                     ))
+                   ))
+                )}
+              </ul>
             </div>
           </div>
         </>
