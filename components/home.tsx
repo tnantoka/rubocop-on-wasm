@@ -58,7 +58,7 @@ export const Home = () => {
       ) : (
         <>
           <div className="row mt-3">
-            <div className="col">
+            <div className="col d-flex justify-content-between">
               <ul className="nav nav-pills">
                 <li className="nav-item">
                   <button className={`nav-link rounded-0 ${tab === 0 && 'active'}`} onClick={() => setTab(0)}>main.rb</button>
@@ -67,6 +67,13 @@ export const Home = () => {
                   <button className={`nav-link rounded-0 ${tab === 1 && 'active'}`} onClick={() => setTab(1)}>.rubocop.yml</button>
                 </li>
               </ul>
+              <button
+                onClick={run}
+                className="btn btn-secondary"
+                disabled={running}
+              >
+                {running ? 'Running...' : 'Run'}
+              </button>
             </div>
             <div className="col">
               {output !== null && (
@@ -115,15 +122,6 @@ export const Home = () => {
                   }}
                 />
               </div>
-              <p className="d-grid mt-3">
-                <button
-                  onClick={run}
-                  className="btn btn-secondary"
-                  disabled={running}
-                >
-                  Run
-                </button>
-              </p>
             </div>
             <div className="col">
               <ul className= "list-unstyled font-monospace bg-light p-3 small" >
