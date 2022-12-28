@@ -10,6 +10,13 @@ import 'ace-builds/src-noconflict/mode-ruby';
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
 
+interface Window {
+  mainRb: string;
+  rubocopYml: string;
+  dontUseCache: string;
+}
+declare var window: Window;
+
 window.mainRb = defaultMainRb;
 window.rubocopYml = defaultRubocopYml;
 
@@ -32,8 +39,7 @@ export const Home = () => {
         loaded.current = true;
       }
 
-      // @ts-ignore
-      window.dontUseCache = process.env.NEXT_PUBLIC_DONT_USE_CACHE;
+      window.dontUseCache = process.env.NEXT_PUBLIC_DONT_USE_CACHE ?? '';
       setVM(await initVM());
     })();
   }, []);
@@ -130,7 +136,9 @@ export const Home = () => {
                     No output
                   </li>
                 ) : (
-                   output.files.map(({ offenses }) => (
+                   // @ts-ignore
+                   output.files.map(({ offenses }: any) => (
+                     // @ts-ignore
                      offenses.map(({ message, location, severity, correctable }, i) => (
                        <li key={i}>
                         {location.line }:{location.column} {severity[0].toUpperCase()}

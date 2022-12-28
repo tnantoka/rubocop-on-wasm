@@ -34,7 +34,8 @@ const createVM = async () => {
   const wasmFs = new WasmFs();
   
   const originalWriteSync = wasmFs.fs.writeSync.bind(wasmFs.fs);
-  const stdOutErrBuffers = { 1: "", 2: "" };
+  // @ts-ignore
+  const stdOutErrBuffers: any = { 1: "", 2: "" };
   wasmFs.fs.writeSync = function () {
     let fd: number = arguments[0];
     let text: string;
@@ -44,7 +45,8 @@ const createVM = async () => {
       let buffer = arguments[1];
       text = new TextDecoder("utf-8").decode(buffer);
     }
-    const handlers = {
+    // @ts-ignore
+    const handlers: any = {
       1: (line: string) => console.log(line),
       2: (line: string) => console.warn(line),
     };
@@ -57,6 +59,7 @@ const createVM = async () => {
       }
       stdOutErrBuffers[fd] = text;
     }
+    // @ts-ignore
     return originalWriteSync(...arguments);
   };
   
@@ -85,12 +88,15 @@ const createVM = async () => {
     }
   });
 
+  // @ts-ignore
   const wrapWASI = (wasiObject) => {
     const original_clock_res_get = wasiObject.wasiImport["clock_res_get"];
+    // @ts-ignore
     wasiObject.wasiImport["clock_res_get"] = (clockId, resolution) => {
       wasiObject.refreshMemory();
       return original_clock_res_get(clockId, resolution)
     };
+    // @ts-ignore
     wasiObject.wasiImport["fd_fdstat_set_flags"] = (fd, flags) => {
       return 0;
     };
