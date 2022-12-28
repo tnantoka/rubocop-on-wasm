@@ -1,12 +1,20 @@
 import React from 'react';
 import { RubyVM } from "ruby-head-wasm-wasi";
+import AceEditor from "react-ace";
 import { initVM, runVM } from '../utils/wasm_helpers';
 import { Layout } from './layout';
 import defaultMainRb from '../static/main.rb';
 import defaultRubocopYml from '../static/.rubocop.yml';
 
+import 'ace-builds/src-noconflict/mode-ruby';
+import 'ace-builds/src-noconflict/mode-yaml';
+import 'ace-builds/src-noconflict/theme-github';
+
+window.mainRb = defaultMainRb;
+window.rubocopYml = defaultRubocopYml;
+
 export const Home = () => {
-  const [vm, setVm] = React.useState<any | RubyVM>(null);
+  const [vm, setVM] = React.useState<any | RubyVM>(null);
   const [output, setOutput] = React.useState<any>(null);
   const [mainRb, setMainRb] = React.useState(defaultMainRb);
   const [rubocopYml, setRubocopYml] = React.useState(defaultRubocopYml);
@@ -26,7 +34,7 @@ export const Home = () => {
 
       // @ts-ignore
       window.dontUseCache = process.env.NEXT_PUBLIC_DONT_USE_CACHE;
-      setVm(await initVM());
+      setVM(await initVM());
     })();
   }, []);
 
@@ -71,23 +79,43 @@ export const Home = () => {
 
           <div className="row mt-3">
             <div className="col">
-              <p>
-                <textarea
+              <div className={`${tab !== 0 && 'd-none'}`}>
+                <AceEditor
+                  mode="ruby"
+                  theme="github"
                   value={mainRb}
-                  onChange={(e) => setMainRb(e.target.value)}
-                  rows={20}
-                  cols={50}
-                  className={`main-rb ${tab !== 0 && 'd-none'}`}
+                  onChange={(value) => {
+                    window.mainRb = value;
+                    setMainRb(value);
+                  }}
+                  name="main-rb"
+                  fontSize={'1rem'}
+                  className="border w-100"
+                  setOptions={{
+                    tabSize: 2,
+                    useWorker: false,
+                  }} 
                 />
-                <textarea
+              </div>
+              <div className={` ${tab !== 1 && 'd-none'}`}>
+                <AceEditor
+                  mode="yaml"
+                  theme="github"
                   value={rubocopYml}
-                  onChange={(e) => setRubocopYml(e.target.value)}
-                  rows={20}
-                  cols={50}
-                  className={`rubocop-yml ${tab !== 1 && 'd-none'}`}
+                  onChange={(value) => {
+                    window.rubocopYml = value;
+                    setRubocopYml(value);
+                  }}
+                  name="rubocop-yml"
+                  fontSize={'1rem'}
+                  className="border w-100"
+                  setOptions={{
+                    tabSize: 2,
+                    useWorker: false,
+                  }}
                 />
-              </p>
-              <p className="d-grid">
+              </div>
+              <p className="d-grid mt-3">
                 <button
                   onClick={run}
                   className="btn btn-secondary"

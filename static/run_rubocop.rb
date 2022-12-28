@@ -1,19 +1,17 @@
-document = JS.global[:window][:document]
-main_rb = document.querySelector('.main-rb')[:value].to_s
-rubocop_yml = document.querySelector('.rubocop-yml')[:value].to_s
+window = JS.global[:window]
 
 tmp = "/home/me/tmp"
 output = "#{tmp}/output"
 
 FileUtils.mkdir_p(tmp)
 
-File.write("#{tmp}/main.rb", main_rb)
-File.write("#{tmp}/.rubocop.yml", rubocop_yml)
+File.write("#{tmp}/main.rb", window[:mainRb].to_s)
+File.write("#{tmp}/.rubocop.yml", window[:rubocopYml].to_s)
 
 options = {
   cache: 'false',
   formatters: [['json', output]],
-} 
+}
 config_store = RuboCop::ConfigStore.new
 runner = RuboCop::Runner.new(options, config_store)
 

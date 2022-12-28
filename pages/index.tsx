@@ -1,5 +1,10 @@
 import Head from 'next/head';
-import { Home } from '../components/home';
+import dynamic from 'next/dynamic';
+
+const Home = dynamic(
+  () => import('../components/home').then((mod) => mod.Home),
+  { ssr: false }
+);
 
 export default function HomePage() {
   return (
