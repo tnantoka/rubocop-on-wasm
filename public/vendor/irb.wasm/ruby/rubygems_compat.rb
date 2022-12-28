@@ -17,7 +17,12 @@ class Gem::Request
       uri.scheme = location[:protocol].to_s.gsub(':', '')
       uri.hostname = location[:hostname].to_s
       uri.port = location[:port].to_s
-      uri.path = "/api/rubygems#{uri.path}"
+      if JS.global[:dontUseCache].to_i == 1
+        uri.path = "/api/rubygems#{uri.path}"
+      else
+        uri.path = ["/cache#{uri.path}", uri.query].compact.join('_')
+        uri.query = nil
+      end
     end
     options = JS.eval("return {}")
     options[:method] = request.method.to_s
