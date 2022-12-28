@@ -4,8 +4,12 @@ import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
 import * as path from "path-browserify";
 
+import stdlibCompat from '../static/irb.wasm/stdlib_compat.rb';
+import rubygemsCompat from '../static/irb.wasm/rubygems_compat.rb';
+import bundlerCompat from '../static/irb.wasm/bundler_compat.rb';
+
 export const createVM = async () => {
-  const res = await fetch('/vendor/irb.wasm/static/irb.wasm');
+  const res = await fetch('/irb.wasm');
   const buffer = new Uint8Array(await res.arrayBuffer());
 
   const wasmFs = new WasmFs();
@@ -84,8 +88,11 @@ export const createVM = async () => {
   (instance.exports._initialize as Function)();
   vm.initialize(args);
 
-  const requireRemote = await fetch('/vendor/irb.wasm/ruby/require_remote.rb');
-  vm.evalAsync(await requireRemote.text());
-
   return vm;
+};
+
+export const loadCompats = async (vm: RubyVM) => {
+  await vm.evalAsync(stdlibCompat);
+  await vm.evalAsync(rubygemsCompat);
+  await vm.evalAsync(bundlerCompat);
 };
