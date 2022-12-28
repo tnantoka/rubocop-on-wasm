@@ -23,6 +23,13 @@ output = "#{tmp}/output"
 input = "#{tmp}/input.rb"
 
 FileUtils.mkdir_p(tmp)
+
+yaml = <<~YAML
+AllCops:
+  NewCops: enable
+YAML
+File.write("#{tmp}/.rubocop.yml", yaml)
+
 File.write(input, "class Input\nend")
 
 require 'rubocop'
@@ -79,6 +86,7 @@ export const Example = () => {
       <p>
         <button
           onClick={run}
+          disabled={vm === null}
         >
           Run
         </button>
