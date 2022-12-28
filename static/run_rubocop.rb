@@ -1,19 +1,15 @@
+document = JS.global[:window][:document]
+main_rb = document.querySelector('.main-rb')[:value].to_s
+rubocop_yml = document.querySelector('.rubocop-yml')[:value].to_s
+
 tmp = '/home/me/tmp'
 output = "#{tmp}/output"
-input = "#{tmp}/input.rb"
-output = "#{tmp}/output"
-input = "#{tmp}/input.rb"
 
 FileUtils.rm_rf(tmp)
 FileUtils.mkdir_p(tmp)
 
-yaml = <<~YAML
-AllCops:
-  NewCops: enable
-YAML
-File.write("#{tmp}/.rubocop.yml", yaml)
-
-File.write(input, "class Input\nend")
+File.write("#{tmp}/main.rb", main_rb)
+File.write("#{tmp}/.rubocop.yml", rubocop_yml)
 
 options = { formatters: [['json', output]] } 
 config_store = RuboCop::ConfigStore.new
@@ -31,4 +27,4 @@ rescue Errno::ENOENT
   raise
 end
 
-puts JSON.pretty_generate(JSON.parse(File.read(output)))
+File.read(output)

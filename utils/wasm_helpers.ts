@@ -4,11 +4,28 @@ import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
 import * as path from "path-browserify";
 
+import bundle from '../static/bundle.rb';
+import runRuboCop from '../static/run_rubocop.rb';
 import stdlibCompat from '../static/irb.wasm/stdlib_compat.rb';
 import rubygemsCompat from '../static/irb.wasm/rubygems_compat.rb';
 import bundlerCompat from '../static/irb.wasm/bundler_compat.rb';
 
-export const createVM = async () => {
+export const initVM = async () => {
+  const vm = await createVM();
+  await loadCompats(vm);
+  await vm.evalAsync(bundle);
+  return vm;
+};
+
+export const runVM = async (vm: RubyVM) => {
+  return JSON.parse((await vm.evalAsync(runRuboCop)).toString());
+};
+
+const escapeCode = (code: string) => {
+  return code.replace(/\\/g, '\\').replace(/\n/g, '\\n').replace(/"/g, '\\"');
+};
+
+const createVM = async () => {
   const res = await fetch('/irb.wasm');
   const buffer = new Uint8Array(await res.arrayBuffer());
 
@@ -91,7 +108,7 @@ export const createVM = async () => {
   return vm;
 };
 
-export const loadCompats = async (vm: RubyVM) => {
+const loadCompats = async (vm: RubyVM) => {
   await vm.evalAsync(stdlibCompat);
   await vm.evalAsync(rubygemsCompat);
   await vm.evalAsync(bundlerCompat);
