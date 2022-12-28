@@ -58,7 +58,7 @@ export const Home = () => {
       ) : (
         <>
           <div className="row mt-3">
-            <div className="col d-flex justify-content-between">
+            <div className="col-sm d-flex justify-content-between">
               <ul className="nav nav-pills">
                 <li className="nav-item">
                   <button className={`nav-link rounded-0 ${tab === 0 && 'active'}`} onClick={() => setTab(0)}>main.rb</button>
@@ -75,7 +75,7 @@ export const Home = () => {
                 {running ? 'Running...' : 'Run'}
               </button>
             </div>
-            <div className="col">
+            <div className="col-sm">
               {output !== null && (
                 <div className="d-flex align-items-center h-100">
                   {output.summary.offense_count} offenses
@@ -85,7 +85,7 @@ export const Home = () => {
           </div>
 
           <div className="row mt-3">
-            <div className="col">
+            <div className="col-sm">
               <div className={`${tab !== 0 && 'd-none'}`}>
                 <AceEditor
                   mode="ruby"
@@ -123,7 +123,7 @@ export const Home = () => {
                 />
               </div>
             </div>
-            <div className="col">
+            <div className="col-sm">
               <ul className= "list-unstyled font-monospace bg-light p-3 small" >
                 {output === null ? (
                   <li>
