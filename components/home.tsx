@@ -3,8 +3,8 @@ import { RubyVM } from "ruby-head-wasm-wasi";
 import AceEditor from "react-ace";
 import { initVM, runVM } from '../utils/wasm_helpers';
 import { Layout } from './layout';
-import defaultMainRb from '../static/main.rb';
-import defaultRubocopYml from '../static/.rubocop.yml';
+import defaultMainRb from '../ruby/main.rb';
+import defaultRubocopYml from '../ruby/.rubocop.yml';
 
 import 'ace-builds/src-noconflict/mode-ruby';
 import 'ace-builds/src-noconflict/mode-yaml';
@@ -48,7 +48,7 @@ export const Home = () => {
     (async () => {
       try {
         setRunning(true);
-        const json = await runVM(vm);
+        const json = runVM(vm);
         setOutput(json);
       } catch (e) {
         console.error(e);

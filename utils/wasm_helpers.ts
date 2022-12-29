@@ -4,21 +4,17 @@ import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
 import * as path from "path-browserify";
 
-import bundle from '../static/bundle.rb';
-import runRuboCop from '../static/run_rubocop.rb';
-import stdlibCompat from '../static/irb.wasm/stdlib_compat.rb';
-import rubygemsCompat from '../static/irb.wasm/rubygems_compat.rb';
-import bundlerCompat from '../static/irb.wasm/bundler_compat.rb';
+import init from '../ruby/init.rb';
+import runRuboCop from '../ruby/run_rubocop.rb';
 
 export const initVM = async () => {
   const vm = await createVM();
-  await loadCompats(vm);
-  await vm.evalAsync(bundle);
+  vm.eval(init);
   return vm;
 };
 
-export const runVM = async (vm: RubyVM) => {
-  return JSON.parse((await vm.evalAsync(runRuboCop)).toString());
+export const runVM = (vm: RubyVM) => {
+  return JSON.parse(vm.eval(runRuboCop).toString());
 };
 
 const escapeCode = (code: string) => {
@@ -28,7 +24,7 @@ const escapeCode = (code: string) => {
 // https://github.com/kateinoigakukun/irb.wasm/blob/1d6696ea1c6fa5206b7e6a0eab3468c409545c8c/src/irb-worker.ts
 // https://github.com/ruby/ruby.wasm/blob/5b09c8b546e15048b58164e1314f5809bbb9c723/packages/npm-packages/ruby-wasm-wasi/src/browser.ts
 const createVM = async () => {
-  const res = await fetch('/irb.wasm');
+  const res = await fetch('/rubocop.wasm');
   const buffer = new Uint8Array(await res.arrayBuffer());
 
   const wasmFs = new WasmFs();
@@ -64,22 +60,14 @@ const createVM = async () => {
   };
   
   const args = [
-    "irb.wasm", "-e_=0", "-I/gems/lib"
+    "rubocop.wasm", "-e_=0", "-I/gems/lib"
   ];
   const vm = new RubyVM();
   wasmFs.fs.mkdirSync("/home/me", { mode: 0o777, recursive: true });
-  wasmFs.fs.mkdirSync("/home/me/.gem/specs", { mode: 0o777, recursive: true });
-  wasmFs.fs.writeFileSync("/dev/null", new Uint8Array(0));
   const wasi = new WASI({
     args,
-    env: {
-      "GEM_PATH": "/gems:/home/me/.gem/ruby/3.2.0+2",
-      "GEM_SPEC_CACHE": "/home/me/.gem/specs",
-      "RUBY_FIBER_MACHINE_STACK_SIZE": String(1024 * 1024 * 20),
-    },
     preopens: {
       "/home": "/home",
-      "/dev": "/dev",
     },
     bindings: {
       ...WASI.defaultBindings,
@@ -88,22 +76,8 @@ const createVM = async () => {
     }
   });
 
-  // @ts-ignore
-  const wrapWASI = (wasiObject) => {
-    const original_clock_res_get = wasiObject.wasiImport["clock_res_get"];
-    // @ts-ignore
-    wasiObject.wasiImport["clock_res_get"] = (clockId, resolution) => {
-      wasiObject.refreshMemory();
-      return original_clock_res_get(clockId, resolution)
-    };
-    // @ts-ignore
-    wasiObject.wasiImport["fd_fdstat_set_flags"] = (fd, flags) => {
-      return 0;
-    };
-    return wasiObject.wasiImport;
-  }
   const imports = {
-    wasi_snapshot_preview1: wrapWASI(wasi),
+    wasi_snapshot_preview1: wasi.wasiImport,
   }
   vm.addToImports(imports)
   const { instance } = await WebAssembly.instantiate(buffer, imports);
@@ -114,10 +88,4 @@ const createVM = async () => {
   vm.initialize(args);
 
   return vm;
-};
-
-const loadCompats = async (vm: RubyVM) => {
-  await vm.evalAsync(stdlibCompat);
-  await vm.evalAsync(rubygemsCompat);
-  await vm.evalAsync(bundlerCompat);
 };

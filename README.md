@@ -21,6 +21,7 @@ $ npm run dev
 - https://github.com/whitequark/parser
 - https://github.com/sickill/rainbow
 - https://github.com/ammar/regexp_parser
+- https://github.com/ruby/rexml
 - https://github.com/rubocop/rubocop/
 - https://github.com/rubocop/rubocop-ast/
 - https://github.com/janlelis/unicode-display_width

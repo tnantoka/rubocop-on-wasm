@@ -1,0 +1,68 @@
+$LOAD_PATH << File.join(File.dirname(__FILE__), "vendor", "deps", "ruby.wasm", "lib")
+
+RUBY_WASM_TAG = 'ruby-head-wasm-wasi-0.5.0'
+
+require "rake/tasklib"
+retry_count = 0
+begin
+  require "ruby_wasm/build_system"
+  require "ruby_wasm/rake_task"
+rescue LoadError => e
+  if retry_count == 0
+    sh "git clone https://github.com/ruby/ruby.wasm.git vendor/deps/ruby.wasm -b #{RUBY_WASM_TAG}"
+    retry_count += 1
+    retry
+  else
+    raise e
+  end
+end
+
+FULL_EXTS = "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib"
+
+LIB_ROOT = File.expand_path("../vendor/deps/ruby.wasm", __FILE__)
+BUILD_DIR = File.join(Dir.pwd, "build")
+
+channel = "head-wasm32-unknown-wasi-full-js-irb"
+
+build_task = RubyWasm::BuildTask.new(channel, target: "wasm32-unknown-wasi", src: { name: "head" })
+
+task :cache_key do
+  puts build_task.hexdigest
+end
+
+wasi_vfs = build_task.wasi_vfs
+
+RUBY_ROOT = File.join("rubies", channel)
+
+task :default => "static/rubocop.wasm"
+
+desc "Build rubocop.wasm"
+file "static/rubocop.wasm" => [] do
+  wasi_vfs.install_cli
+  unless File.exist?(RUBY_ROOT)
+    asset = "head-wasm32-unknown-wasi-full-js"
+    archive = "ruby-#{asset}.tar.gz"
+    sh "curl -LO https://github.com/ruby/ruby.wasm/releases/download/#{RUBY_WASM_TAG}/#{archive}"
+    sh "tar xf #{archive}"
+    mv asset, "rubies/#{channel}"
+  end
+
+  sh "bundle install --path vendor/bundle"
+
+  require "tmpdir"
+  Dir.mktmpdir do |dir|
+    tmpruby = File.join(dir, "ruby")
+    cp_r RUBY_ROOT, tmpruby
+    rm_rf File.join(tmpruby, "usr", "local", "include")
+    rm_f File.join(tmpruby, "usr", "local", "lib", "libruby-static.a")
+    ruby_wasm = File.join(dir, "ruby.wasm")
+    mv File.join(tmpruby, "usr", "local", "bin", "ruby"), ruby_wasm
+    sh "#{wasi_vfs.cli_bin_path} pack #{ruby_wasm} --mapdir /usr::#{File.join(tmpruby, "usr")} --mapdir /gems::./fake-gems --mapdir /bundle::./vendor/bundle/ruby/3.1.0/gems -o static/rubocop.wasm"
+    cp 'static/rubocop.wasm', '../public'
+  end
+end
+
+desc "Clean build artifacts"
+task :clean do
+  rm_f "static/rubocop.wasm"
+end

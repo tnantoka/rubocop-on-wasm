@@ -1,0 +1,11 @@
+/rubies
+/build
+/static/rubocop.wasm
+/vendor/bundle/*
+/vendor/deps/*
+!.gitkeep
+
+.rake_tasks~
+*.tar.gz
+.bundle
+
