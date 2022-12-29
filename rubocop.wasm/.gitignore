@@ -1,0 +1,9 @@
+/rubies
+/static/rubocop.wasm
+/vendor/bundle/*
+/wasi-vfs
+!.gitkeep
+
+*.tar.gz
+*.zip
+.bundle

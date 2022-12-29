@@ -1,0 +1,51 @@
+RUBY_WASM_TAG = 'ruby-head-wasm-wasi-0.5.0'
+WASI_VFS_VERSION = '0.2.0'
+
+RUBY_ROOT = File.join("rubies", RUBY_WASM_TAG)
+
+task :default => "static/rubocop.wasm"
+
+desc "Build rubocop.wasm"
+file "static/rubocop.wasm" => [] do
+  unless File.exist?('wasi-vfs')
+    sh "curl -LO https://github.com/kateinoigakukun/wasi-vfs/releases/download/v#{WASI_VFS_VERSION}/wasi-vfs-cli-x86_64-apple-darwin.zip"
+    sh 'unzip wasi-vfs-cli-x86_64-apple-darwin.zip'
+  end
+
+  unless File.exist?(RUBY_ROOT)
+    asset = "head-wasm32-unknown-wasi-full-js"
+    archive = "ruby-#{asset}.tar.gz"
+    sh "curl -LO https://github.com/ruby/ruby.wasm/releases/download/#{RUBY_WASM_TAG}/#{archive}"
+    sh "tar xf #{archive}"
+    mv asset, RUBY_ROOT
+  end
+
+  sh "bundle install --path vendor/bundle"
+
+  # NOTE: https://github.com/kateinoigakukun/irb.wasm/blob/1d6696ea1c6fa5206b7e6a0eab3468c409545c8c/Rakefile#L67
+  require "tmpdir"
+  Dir.mktmpdir do |dir|
+    tmpruby = File.join(dir, "ruby")
+    cp_r RUBY_ROOT, tmpruby
+    rm_rf File.join(tmpruby, "usr", "local", "include")
+    rm_f File.join(tmpruby, "usr", "local", "lib", "libruby-static.a")
+    ruby_wasm = File.join(dir, "ruby.wasm")
+    mv File.join(tmpruby, "usr", "local", "bin", "ruby"), ruby_wasm
+    sh "./wasi-vfs pack #{ruby_wasm} --mapdir /usr::#{File.join(tmpruby, "usr")} --mapdir /gems::./fake-gems --mapdir /bundle::./vendor/bundle/ruby/3.1.0/gems -o static/rubocop.wasm"
+    cp 'static/rubocop.wasm', '../public'
+  end
+end
+
+desc "Deep clean build artifacts"
+task :deep_clean => :clean do
+  rm_rf 'rubies'
+  rm_rf 'wasi-vfs'
+
+  mkdir 'rubies'
+  sh 'touch rubies/.gitkeep'
+end
+
+desc "Clean build artifacts"
+task :clean do
+  rm_f "static/rubocop.wasm"
+end

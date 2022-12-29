@@ -21,8 +21,8 @@ const escapeCode = (code: string) => {
   return code.replace(/\\/g, '\\').replace(/\n/g, '\\n').replace(/"/g, '\\"');
 };
 
-// https://github.com/kateinoigakukun/irb.wasm/blob/1d6696ea1c6fa5206b7e6a0eab3468c409545c8c/src/irb-worker.ts
-// https://github.com/ruby/ruby.wasm/blob/5b09c8b546e15048b58164e1314f5809bbb9c723/packages/npm-packages/ruby-wasm-wasi/src/browser.ts
+// NOTE: https://github.com/kateinoigakukun/irb.wasm/blob/1d6696ea1c6fa5206b7e6a0eab3468c409545c8c/src/irb-worker.ts
+// NOTE: https://github.com/ruby/ruby.wasm/blob/5b09c8b546e15048b58164e1314f5809bbb9c723/packages/npm-packages/ruby-wasm-wasi/src/browser.ts
 const createVM = async () => {
   const res = await fetch('/rubocop.wasm');
   const buffer = new Uint8Array(await res.arrayBuffer());
