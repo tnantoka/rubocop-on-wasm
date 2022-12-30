@@ -7,6 +7,9 @@ Run RuboCop on a web browser with [ruby.wasm](https://github.com/ruby/ruby.wasm)
 ## Developmennt
 
 ```bash
+$ cd rubocop.wasm
+$ rake
+
 $ npm i
 $ npm run dev
 ```
