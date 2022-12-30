@@ -147,7 +147,10 @@ export const Home = () => {
           </div>
         </>
       ) : (
-        <div className="spinner-grow" role="status" />
+        <div className="d-flex align-items-center">
+          <div className="spinner-grow" role="status" />
+          <span className="ms-2">Loading...</span>
+        </div>
       )}
     </Layout>
   );
