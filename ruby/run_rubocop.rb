@@ -1,12 +1,10 @@
-window = JS.global[:window]
-
 tmp = "/home/me/tmp"
 output = "#{tmp}/output"
 
 FileUtils.mkdir_p(tmp)
 
-File.write("#{tmp}/main.rb", window[:mainRb].to_s)
-File.write("#{tmp}/.rubocop.yml", window[:rubocopYml].to_s)
+File.write("#{tmp}/main.rb", JS.global[:mainRb].to_s)
+File.write("#{tmp}/.rubocop.yml", JS.global[:rubocopYml].to_s)
 
 options = {
   cache: 'false',

@@ -1,7 +1,6 @@
 import React from 'react';
 import { RubyVM } from "ruby-head-wasm-wasi";
 import AceEditor from "react-ace";
-import { initVM, runVM } from '../utils/wasm_helpers';
 import { Layout } from './layout';
 import defaultMainRb from '../ruby/main.rb';
 import defaultRubocopYml from '../ruby/.rubocop.yml';
@@ -10,18 +9,9 @@ import 'ace-builds/src-noconflict/mode-ruby';
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
 
-interface Window {
-  mainRb: string;
-  rubocopYml: string;
-  dontUseCache: string;
-}
-declare var window: Window;
-
-window.mainRb = defaultMainRb;
-window.rubocopYml = defaultRubocopYml;
-
 export const Home = () => {
-  const [vm, setVM] = React.useState<any | RubyVM>(null);
+  const [ready, setReady] = React.useState(false);
+  const [vmWorker, setVMWorker] = React.useState<any | Worker>(null);
   const [output, setOutput] = React.useState<any>(null);
   const [mainRb, setMainRb] = React.useState(defaultMainRb);
   const [rubocopYml, setRubocopYml] = React.useState(defaultRubocopYml);
@@ -30,38 +20,49 @@ export const Home = () => {
   const loaded = React.useRef(false);
 
   React.useEffect(() => {
-    (async () => {
-      if (process.env.NODE_ENV === 'development') {
-        if (loaded.current) {
-          return;
-        }
-      
-        loaded.current = true;
+    if (process.env.NODE_ENV === 'development') {
+      if (loaded.current) {
+        return;
+      }
+    
+      loaded.current = true;
+    }
+    
+    const vmWorker = new Worker(new URL('../workers/vm-worker', import.meta.url));
+    vmWorker.addEventListener('message', (e) => {
+      switch (e.data.type) {
+        case 'init':
+          setReady(true);
+          break;
+        case 'run':
+          setOutput(e.data.output);
+          setRunning(false);
+          break;
+      }
+    });
+
+    vmWorker.postMessage({ type: 'init' });
+    
+    setVMWorker(vmWorker);
+  
+    return () => {
+      if (loaded.current) {
+        return;
       }
 
-      window.dontUseCache = process.env.NEXT_PUBLIC_DONT_USE_CACHE ?? '';
-      setVM(await initVM());
-    })();
+      vmWorker.terminate();
+    };
   }, []);
 
   const run = React.useCallback(() => {
-    (async () => {
-      try {
-        setRunning(true);
-        const json = runVM(vm);
-        setOutput(json);
-      } catch (e) {
-        console.error(e);
-      }
-      setRunning(false);
-    })();
-  }, [vm]);
+    setOutput(null);
+    setRunning(true);
+    vmWorker.postMessage({ type: 'run', mainRb, rubocopYml });
+  }, [vmWorker, mainRb, rubocopYml]);
 
   return (
     <Layout>
-      {vm === null ? (
-        <div className="spinner-grow" role="status" />
-      ) : (
+      {ready ? (
         <>
           <div className="row mt-3">
             <div className="col-sm d-flex justify-content-between">
@@ -97,10 +98,7 @@ export const Home = () => {
                   mode="ruby"
                   theme="github"
                   value={mainRb}
-                  onChange={(value) => {
-                    window.mainRb = value;
-                    setMainRb(value);
-                  }}
+                  onChange={setMainRb}
                   name="main-rb"
                   fontSize={'1rem'}
                   className="border w-100"
@@ -115,10 +113,7 @@ export const Home = () => {
                   mode="yaml"
                   theme="github"
                   value={rubocopYml}
-                  onChange={(value) => {
-                    window.rubocopYml = value;
-                    setRubocopYml(value);
-                  }}
+                  onChange={setRubocopYml}
                   name="rubocop-yml"
                   fontSize={'1rem'}
                   className="border w-100"
@@ -151,6 +146,8 @@ export const Home = () => {
             </div>
           </div>
         </>
+      ) : (
+        <div className="spinner-grow" role="status" />
       )}
     </Layout>
   );
