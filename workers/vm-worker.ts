@@ -12,13 +12,13 @@ self.addEventListener('message', async (e) => {
       self.postMessage({ ...e.data });
       break;
     case 'run':
-      // @ts-ignore
-      self.mainRb = e.data.mainRb;
-      // @ts-ignore
-      self.rubocopYml = e.data.rubocopYml;
-
-      const output = runVM(vm);
-      self.postMessage({ ...e.data, output });
+      try {
+        const output = runVM(vm, e.data.mainRb, e.data.rubocopYml);
+        self.postMessage({ ...e.data, output });
+      } catch (error) {
+        console.error(error);
+        self.postMessage({ ...e.data, output: null });
+      }
       break;
   }
 });

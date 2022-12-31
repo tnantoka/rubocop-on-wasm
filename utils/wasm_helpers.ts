@@ -13,7 +13,12 @@ export const initVM = async () => {
   return vm;
 };
 
-export const runVM = (vm: RubyVM) => {
+export const runVM = (vm: RubyVM, mainRb: string, rubocopYml: string) => {
+  // @ts-ignore
+  globalThis.mainRb = mainRb;
+  // @ts-ignore
+  globalThis.rubocopYml = rubocopYml;
+
   return JSON.parse(vm.eval(runRuboCop).toString());
 };
 

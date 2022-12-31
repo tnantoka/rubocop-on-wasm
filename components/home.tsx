@@ -1,5 +1,4 @@
 import React from 'react';
-import { RubyVM } from "ruby-head-wasm-wasi";
 import AceEditor from "react-ace";
 import { Layout } from './layout';
 import defaultMainRb from '../ruby/main.rb';
@@ -8,6 +7,7 @@ import defaultRubocopYml from '../ruby/.rubocop.yml';
 import 'ace-builds/src-noconflict/mode-ruby';
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
+import { initVM, runVM } from '../utils/wasm_helpers';
 
 export const Home = () => {
   const [ready, setReady] = React.useState(false);
@@ -27,7 +27,7 @@ export const Home = () => {
     
       loaded.current = true;
     }
-    
+
     const vmWorker = new Worker(new URL('../workers/vm-worker', import.meta.url));
     vmWorker.addEventListener('message', (e) => {
       switch (e.data.type) {
@@ -57,7 +57,16 @@ export const Home = () => {
   const run = React.useCallback(() => {
     setOutput(null);
     setRunning(true);
-    vmWorker.postMessage({ type: 'run', mainRb, rubocopYml });
+    if (process.env.NEXT_PUBLIC_DONT_USE_WORKER) {
+      (async () => {
+        const vm = await initVM();
+        const output = runVM(vm, mainRb, rubocopYml);
+        setOutput(output);
+        setRunning(false);
+      })();
+    } else {
+      vmWorker.postMessage({ type: 'run', mainRb, rubocopYml });
+    }
   }, [vmWorker, mainRb, rubocopYml]);
 
   return (

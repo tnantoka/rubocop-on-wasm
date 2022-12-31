@@ -2,6 +2,8 @@
 
 Run RuboCop on a web browser with [ruby.wasm](https://github.com/ruby/ruby.wasm).
 
+http://rubocop-on-wasm.tnantoka.com/
+
 ![](/docs/screenshot.png)
 
 ## Developmennt
