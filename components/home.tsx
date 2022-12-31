@@ -8,10 +8,11 @@ import 'ace-builds/src-noconflict/mode-ruby';
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
 import { initVM, runVM } from '../utils/wasm_helpers';
+import { RubocopRunner } from '../utils/rubocop_runner';
 
 export const Home = () => {
   const [ready, setReady] = React.useState(false);
-  const [vmWorker, setVMWorker] = React.useState<any | Worker>(null);
+  const [rubocopRunner, setRubocopRunner] = React.useState<any | RubocopRunner>(null);
   const [output, setOutput] = React.useState<any>(null);
   const [mainRb, setMainRb] = React.useState(defaultMainRb);
   const [rubocopYml, setRubocopYml] = React.useState(defaultRubocopYml);
@@ -28,46 +29,23 @@ export const Home = () => {
       loaded.current = true;
     }
 
-    const vmWorker = new Worker(new URL('../workers/vm-worker', import.meta.url));
-    vmWorker.addEventListener('message', (e) => {
-      switch (e.data.type) {
-        case 'init':
-          setReady(true);
-          break;
-        case 'run':
-          setOutput(e.data.output);
-          setRunning(false);
-          break;
-      }
-    });
-
-    vmWorker.postMessage({ type: 'init' });
-    
-    setVMWorker(vmWorker);
+    const rubocopRunner = new RubocopRunner({ setReady, setOutput, setRunning });
+    setRubocopRunner(rubocopRunner);
   
     return () => {
       if (loaded.current) {
         return;
       }
 
-      vmWorker.terminate();
+      rubocopRunner.terminate();
     };
   }, []);
 
   const run = React.useCallback(() => {
-    setOutput(null);
-    setRunning(true);
-    if (process.env.NEXT_PUBLIC_DONT_USE_WORKER) {
-      (async () => {
-        const vm = await initVM();
-        const output = runVM(vm, mainRb, rubocopYml);
-        setOutput(output);
-        setRunning(false);
-      })();
-    } else {
-      vmWorker.postMessage({ type: 'run', mainRb, rubocopYml });
-    }
-  }, [vmWorker, mainRb, rubocopYml]);
+    (async () => {
+      await rubocopRunner.run(mainRb, rubocopYml);
+    })();
+  }, [rubocopRunner, mainRb, rubocopYml]);
 
   return (
     <Layout>
