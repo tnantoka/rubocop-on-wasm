@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "export": "next build && next export && rm -rf gitlab/public && mv out gitlab/public",
+    "export": "next build && next export && rm -rf deploy/out && mv out deploy/out",
     "start": "next start",
     "lint": "next lint"
   },
