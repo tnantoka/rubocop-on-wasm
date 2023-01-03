@@ -7,7 +7,6 @@ import defaultRubocopYml from '../ruby/.rubocop.yml';
 import 'ace-builds/src-noconflict/mode-ruby';
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
-import { initVM, runVM } from '../utils/wasm_helpers';
 import { RubocopRunner } from '../utils/rubocop_runner';
 
 export const Home = () => {
@@ -47,23 +46,36 @@ export const Home = () => {
     })();
   }, [rubocopRunner, mainRb, rubocopYml]);
 
+  const activeTabClassName = 'active text-dark border-bottom-0 bg-light fw-bold';
+  const inactiveTabClassName = 'text-dark border-white';
+
   return (
     <Layout>
       {ready ? (
         <>
           <div className="row mt-3">
-            <div className="col-sm d-flex justify-content-between">
-              <ul className="nav nav-pills">
+            <div className="col-sm d-flex justify-content-between align-items-end">
+              <ul className="nav nav-pills align-items-end">
                 <li className="nav-item">
-                  <button className={`nav-link rounded-0 ${tab === 0 && 'active'}`} onClick={() => setTab(0)}>main.rb</button>
+                  <button
+                    className={`nav-link border ${tab === 0 ? activeTabClassName : inactiveTabClassName}`}
+                    onClick={() => setTab(0)}
+                  >
+                    main.rb
+                  </button>
                 </li>
                 <li className="nav-item">
-                  <button className={`nav-link rounded-0 ${tab === 1 && 'active'}`} onClick={() => setTab(1)}>.rubocop.yml</button>
+                  <button
+                    className={`nav-link border ${tab === 1 ? activeTabClassName : inactiveTabClassName}`}
+                    onClick={() => setTab(1)}
+                  >
+                    .rubocop.yml
+                  </button>
                 </li>
               </ul>
               <button
                 onClick={run}
-                className="btn btn-secondary"
+                className="btn btn-dark"
                 disabled={running}
               >
                 {running ? 'Running...' : 'Run'}
@@ -78,7 +90,7 @@ export const Home = () => {
             </div>
           </div>
 
-          <div className="row mt-3">
+          <div className="row">
             <div className="col-sm">
               <div className={`${tab !== 0 && 'd-none'}`}>
                 <AceEditor
