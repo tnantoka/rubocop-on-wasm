@@ -6,6 +6,7 @@ type Props = {
   setReady: (readly: boolean) => void;
   setOutput: (output: any) => void;
   setRunning: (running: boolean) => void;
+  setError: (error: string | null) => void;
 }
 
 export class RubocopRunner {
@@ -44,10 +45,16 @@ export class RubocopRunner {
       switch (e.data.type) {
         case 'init':
           this.props.setReady(true);
+          this.props.setError(null);
           break;
         case 'run':
           this.props.setOutput(e.data.output);
           this.props.setRunning(false);
+          this.props.setError(null);
+          break;
+        case 'error':
+          this.props.setRunning(false);
+          this.props.setError(e.data.error);
           break;
       }
     });
@@ -57,9 +64,14 @@ export class RubocopRunner {
   }
 
   private async initWithoutWorker() {
-    const vm = await initVM();
-    this.vm = vm;
-    this.props.setReady(true);
+    try {
+      const vm = await initVM();
+      this.vm = vm;
+      this.props.setReady(true);
+    } catch (error) {
+      // @ts-ignore
+      this.props.setError(error);
+    }
   }
 
   async run(mainRb: string, rubocopYml: string) {
@@ -69,12 +81,17 @@ export class RubocopRunner {
       this.vmWorker?.postMessage({ type: 'run', mainRb, rubocopYml });
     } else {
       console.info('Running without worker...');
-      (async () => {
-        const vm = await initVM();
-        const output = runVM(vm, mainRb, rubocopYml);
-        this.props.setOutput(output);
+      try {
+        if (this.vm) {
+          const output = runVM(this.vm, mainRb, rubocopYml);
+          this.props.setOutput(output);
+          this.props.setRunning(false);
+        }
+      } catch (error) {
         this.props.setRunning(false);
-      })();
+        // @ts-ignore
+        this.props.setError(error);
+      }
     }
   }
 }

@@ -7,6 +7,12 @@ import * as path from "path-browserify";
 import init from '../ruby/init.rb';
 import runRuboCop from '../ruby/run_rubocop.rb';
 
+interface GlobalThis {
+  mainRb: string;
+  rubocopYml: string;
+}
+declare var globalThis: GlobalThis;
+
 export const initVM = async () => {
   const vm = await createVM();
   vm.eval(init);
@@ -14,9 +20,7 @@ export const initVM = async () => {
 };
 
 export const runVM = (vm: RubyVM, mainRb: string, rubocopYml: string) => {
-  // @ts-ignore
   globalThis.mainRb = mainRb;
-  // @ts-ignore
   globalThis.rubocopYml = rubocopYml;
 
   return JSON.parse(vm.eval(runRuboCop).toString());

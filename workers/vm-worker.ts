@@ -8,8 +8,13 @@ let vm: RubyVM;
 self.addEventListener('message', async (e) => {
   switch (e.data.type) {
     case 'init':
-      vm = await initVM();
-      self.postMessage({ ...e.data });
+      try {
+        vm = await initVM();
+        self.postMessage({ ...e.data });
+      } catch (error) {
+        console.error(error);
+        self.postMessage({ type: 'error', error });
+      }
       break;
     case 'run':
       try {
@@ -17,7 +22,7 @@ self.addEventListener('message', async (e) => {
         self.postMessage({ ...e.data, output });
       } catch (error) {
         console.error(error);
-        self.postMessage({ ...e.data, output: null });
+        self.postMessage({ type: 'error', error });
       }
       break;
   }

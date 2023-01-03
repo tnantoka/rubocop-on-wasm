@@ -17,6 +17,7 @@ export const Home = () => {
   const [rubocopYml, setRubocopYml] = React.useState(defaultRubocopYml);
   const [tab, setTab] = React.useState(0);
   const [running, setRunning] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
   const loaded = React.useRef(false);
 
   React.useEffect(() => {
@@ -28,7 +29,7 @@ export const Home = () => {
       loaded.current = true;
     }
 
-    const rubocopRunner = new RubocopRunner({ setReady, setOutput, setRunning });
+    const rubocopRunner = new RubocopRunner({ setReady, setOutput, setRunning, setError });
     setRubocopRunner(rubocopRunner);
   
     return () => {
@@ -127,7 +128,11 @@ export const Home = () => {
               <ul className= "list-unstyled font-monospace bg-light p-3 small" >
                 {output === null ? (
                   <li>
-                    No output
+                    {error === null ? (
+                      'No output'
+                    ) : (
+                      <span className="text-danger">{error}</span>
+                    )}
                   </li>
                 ) : (
                    // @ts-ignore
@@ -147,8 +152,14 @@ export const Home = () => {
         </>
       ) : (
         <div className="d-flex align-items-center">
-          <div className="spinner-grow" role="status" />
-          <span className="ms-2">Loading...</span>
+          {error === null ? (
+            <>
+              <div className="spinner-grow" role="status" />
+              <span className="ms-2">Loading...</span>
+            </>
+          ) : (
+            <div className="text-danger">{error}</div>
+          )}
         </div>
       )}
     </Layout>
