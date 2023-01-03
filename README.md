@@ -19,8 +19,8 @@ $ npm run dev
 ## Acknowledgements
 
 - https://github.com/kateinoigakukun/irb.wasm
-- https://github.com/kateinoigakukun/ruby.wasm
-- https://github.com/rubocop/rubocop/
+- https://github.com/rubocop/rubocop
+- https://github.com/ruby/ruby.wasm
 
 ## License
 
