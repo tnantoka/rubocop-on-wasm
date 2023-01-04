@@ -47,19 +47,16 @@ export const Home = () => {
     })();
   }, [rubocopRunner, mainRb, rubocopYml]);
 
-  const activeTabClassName = 'active text-dark border-bottom-0 bg-light fw-bold';
-  const inactiveTabClassName = 'text-dark border-white';
-
   return (
     <Layout>
       {ready ? (
         <>
           <div className="row mt-3">
             <div className="col-sm d-flex justify-content-between align-items-end">
-              <ul className="nav nav-pills align-items-end">
+              <ul className="nav nav-tabs border-0">
                 <li className="nav-item">
                   <button
-                    className={`nav-link border ${tab === 0 ? activeTabClassName : inactiveTabClassName}`}
+                    className={`nav-link ${tab === 0 ? 'active bg-light' : 'text-dark'}`}
                     onClick={() => setTab(0)}
                   >
                     main.rb
@@ -67,7 +64,7 @@ export const Home = () => {
                 </li>
                 <li className="nav-item">
                   <button
-                    className={`nav-link border ${tab === 1 ? activeTabClassName : inactiveTabClassName}`}
+                    className={`nav-link ${tab === 1 ? 'active bg-light' : 'text-dark'}`}
                     onClick={() => setTab(1)}
                   >
                     .rubocop.yml
