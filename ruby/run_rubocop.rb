@@ -1,14 +1,16 @@
 tmp = "/home/me/tmp"
+main_rb = "#{tmp}/main.rb"
 output = "#{tmp}/output"
 
 FileUtils.mkdir_p(tmp)
 
-File.write("#{tmp}/main.rb", JS.global[:mainRb].to_s)
+File.write(main_rb, JS.global[:mainRb].to_s)
 File.write("#{tmp}/.rubocop.yml", JS.global[:rubocopYml].to_s)
 
 options = {
   cache: 'false',
   formatters: [['json', output]],
+  autocorrect: 'true',
 }
 config_store = RuboCop::ConfigStore.new
 runner = RuboCop::Runner.new(options, config_store)
@@ -29,4 +31,7 @@ rescue Errno::ENOENT
   raise
 end
 
-File.read(output)
+{
+  json: JSON.parse(File.read(output)),
+  corrected: File.read(main_rb),
+}.to_json
