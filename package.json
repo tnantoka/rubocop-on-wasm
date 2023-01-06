@@ -25,6 +25,7 @@
     "path-browserify": "^1.0.1",
     "react": "18.2.0",
     "react-ace": "^10.1.0",
+    "react-diff-viewer-continued": "^3.2.4",
     "react-dom": "18.2.0",
     "ruby-head-wasm-wasi": "^0.5.0",
     "sass": "^1.57.1",
