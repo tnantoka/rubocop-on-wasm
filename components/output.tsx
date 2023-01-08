@@ -33,7 +33,10 @@ export const Output: React.FC<Props> = ({
 
         <div className="d-flex align-self-stretch align-items-center">
           {output !== null &&
-            `${output.json.summary.offense_count} offenses`
+            <p className="mb-0">
+              {output.json.summary.offense_count} offenses
+              <small className="ms-1 text-muted">(RuboCop {output.json.metadata.rubocop_version})</small>
+            </p>
           }
         </div>
       </div>
